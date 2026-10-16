@@ -1,0 +1,120 @@
+@baseUrl = https://localhost:7001
+
+# ==========================================
+# УРОВЕНЬ 1: Базовый CRUD
+# ==========================================
+
+### Создать проект
+POST {{baseUrl}}/api/v1/projects
+Content-Type: application/json
+
+{ "name": "Веб-сайт", "description": "Корпоративный портал" }
+
+### Получить все проекты
+GET {{baseUrl}}/api/v1/projects
+
+### Получить проект по ID
+GET {{baseUrl}}/api/v1/projects/1
+
+### Обновить проект
+PUT {{baseUrl}}/api/v1/projects/1
+Content-Type: application/json
+
+{ "name": "Веб-сайт v2", "description": "Обновлённый портал" }
+
+### Удалить проект
+DELETE {{baseUrl}}/api/v1/projects/1
+
+### Создать задачу (v1)
+POST {{baseUrl}}/api/v1/tasks
+Content-Type: application/json
+
+{ "title": "Сверстать главную", "status": "ToDo", "projectId": 1 }
+
+### Получить задачу (v1) — есть Description, нет Priority
+GET {{baseUrl}}/api/v1/tasks/1
+
+### Валидация: пустое имя проекта → 400
+POST {{baseUrl}}/api/v1/projects
+Content-Type: application/json
+
+{ "name": "", "description": "test" }
+
+
+# ==========================================
+# УРОВЕНЬ 2: DTO, EF Core, связи, версии
+# ==========================================
+
+### Создать проект через DTO
+POST {{baseUrl}}/api/v1/projects
+Content-Type: application/json
+
+{ "name": "Мобильное приложение", "description": "iOS + Android" }
+
+### Проверить DTO проекта (должен быть TaskCount, без навигационных свойств)
+GET {{baseUrl}}/api/v1/projects/1
+
+### Добавить комментарий к задаче 1
+POST {{baseUrl}}/api/v1/tasks/1/comments
+Content-Type: application/json
+
+{ "content": "Нужно уточнить ТЗ", "authorId": 1 }
+
+### Получить комментарии задачи 1
+GET {{baseUrl}}/api/v1/tasks/1/comments
+
+### Комментарии к несуществующей задаче → 404
+GET {{baseUrl}}/api/v1/tasks/999/comments
+
+### v2 — есть Priority, нет Description
+GET {{baseUrl}}/api/v2/tasks/1
+
+
+# ==========================================
+# УРОВЕНЬ 3: Пагинация, идемпотентность, ошибки, CORS
+# ==========================================
+
+### 3.1 Пагинация и фильтрация (статус, сортировка по дате)
+GET {{baseUrl}}/api/v2/tasks?page=1&pageSize=5&status=ToDo&sortBy=dueDate&sortDir=desc
+
+### 3.1 Поиск по слову в Title
+GET {{baseUrl}}/api/v2/tasks?page=1&pageSize=10&search=задач
+
+### 3.1 pageSize > 50 → 400 Bad Request
+GET {{baseUrl}}/api/v2/tasks?page=1&pageSize=100
+
+### 3.2 Идемпотентность: первый запрос — создаёт задачу
+POST {{baseUrl}}/api/v2/tasks
+X-Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
+Content-Type: application/json
+
+{ "title": "Новая задача", "priority": "High", "projectId": 1 }
+
+### 3.2 Повтор с тем же ключом и телом → тот же ответ (201, та же задача)
+POST {{baseUrl}}/api/v2/tasks
+X-Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
+Content-Type: application/json
+
+{ "title": "Новая задача", "priority": "High", "projectId": 1 }
+
+### 3.2 Тот же ключ, но другое тело → 409 Conflict
+POST {{baseUrl}}/api/v2/tasks
+X-Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
+Content-Type: application/json
+
+{ "title": "Другая задача", "priority": "Low", "projectId": 1 }
+
+### 3.2 Без ключа → 400 Bad Request
+POST {{baseUrl}}/api/v2/tasks
+Content-Type: application/json
+
+{ "title": "Без ключа", "priority": "Medium", "projectId": 1 }
+
+### 3.3 Запрос к несуществующей задаче → 404 ProblemDetails
+GET {{baseUrl}}/api/v2/tasks/9999
+
+### 3.3 Попытка завершить задачу без комментариев → 422 Unprocessable Entity
+PATCH {{baseUrl}}/api/v2/tasks/1/status
+Content-Type: application/json
+
+{ "status": "Done" }

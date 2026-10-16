@@ -1,0 +1,142 @@
+﻿@{
+    // Проверяем режим печати
+    bool isPrintMode = ViewData["Mode"] as string == "Print";
+}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Админ-панель</title>
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: "Segoe UI", Arial, sans-serif;
+                background: #f4f6f9;
+                color: #222;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
+
+            header.app-header {
+                background: #1f2937;
+                color: #fff;
+                padding: 12px 24px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+                header.app-header .logo {
+                    font-weight: bold;
+                    font-size: 1.2rem;
+                }
+
+                header.app-header nav a {
+                    color: #cbd5e1;
+                    text-decoration: none;
+                    margin-left: 20px;
+                    font-size: 0.95rem;
+                }
+
+                    header.app-header nav a:hover {
+                        color: #fff;
+                    }
+
+            /* Стили для кнопки печати в шапке */
+            .header-actions {
+                margin-left: 20px;
+            }
+
+            .btn-print {
+                background: #3b82f6;
+                color: #fff;
+                text-decoration: none;
+                padding: 6px 12px;
+                border-radius: 6px;
+                font-size: 0.9rem;
+                transition: background 0.2s;
+            }
+
+                .btn-print:hover {
+                    background: #2563eb;
+                }
+
+            .page-header {
+                background: #fff;
+                padding: 16px 24px;
+                border-bottom: 1px solid #e5e7eb;
+            }
+
+                .page-header h1 {
+                    margin: 0;
+                    font-size: 1.4rem;
+                }
+
+            main.content {
+                flex: 1;
+            }
+
+            footer.app-footer {
+                background: #1f2937;
+                color: #cbd5e1;
+                text-align: center;
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+    </style>
+</head>
+<body>
+
+    @* 🔹 Скрываем шапку и заголовок, если режим печати *@
+    @if (!isPrintMode)
+    {
+        <header class="app-header">
+            <div class="logo">🛠 Админ-панель</div>
+            <nav>
+                <a href="/Dashboard">Дашборд</a>
+                <a href="#">Настройки</a>
+            </nav>
+
+            @* 🔹 Секция Actions: рендерится только если определена на странице *@
+            @if (IsSectionDefined("Actions"))
+            {
+                <div class="header-actions">
+                    @await RenderSectionAsync("Actions")
+                </div>
+            }
+        </header>
+
+        <div class="page-header">
+            @if (IsSectionDefined("PageHeader"))
+            {
+                @await RenderSectionAsync("PageHeader")
+            }
+            else
+            {
+                <h1>Панель управления</h1>
+            }
+        </div>
+    }
+
+    <main class="content">
+        @RenderBody()
+    </main>
+
+    @* 🔹 Скрываем подвал, если режим печати *@
+    @if (!isPrintMode)
+    {
+        <footer class="app-footer">
+            © @DateTime.Now.Year Админ-панель
+        </footer>
+    }
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

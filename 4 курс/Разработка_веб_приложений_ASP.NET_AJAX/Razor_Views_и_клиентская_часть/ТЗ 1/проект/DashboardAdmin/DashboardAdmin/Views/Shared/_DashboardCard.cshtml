@@ -1,0 +1,64 @@
+﻿@model DashboardCard
+
+@functions {
+    // Существующий метод для тренда
+    string GetTrendLabel(Trend t) => t switch
+    {
+        Trend.Up => "Рост",
+        Trend.Down => "Снижение",
+        Trend.Stable => "Стабильно",
+        _ => "—"
+    };
+
+    // 🔹 Новый метод для классификации значения
+    string GetValueClass(decimal value)
+    {
+        if (value < 0) return "Отрицательное";
+        if (value < 1000) return "Низкое";
+        if (value <= 10000) return "Среднее";
+        return "Высокое";
+    }
+}
+
+<div class="card @(Model.Value < 0 ? "card--negative" : "")">
+    <div class="card__title">@Model.Title</div>
+
+    <div class="card__value">
+        @Model.Value.ToString("N2") @Model.Unit
+
+        @* 🔹 Вызов нового метода прямо в разметке *@
+        <span class="value-class">(@GetValueClass(Model.Value))</span>
+    </div>
+
+    <div class="card__trend">
+        @if (Model.Trend == Trend.Up)
+        {
+            <span class="arrow up">↑</span>
+        }
+        else if (Model.Trend == Trend.Down)
+        {
+            <span class="arrow down">↓</span>
+        }
+        else
+        {
+            <span class="arrow stable">→</span>
+        }
+        @GetTrendLabel(Model.Trend)
+    </div>
+
+    @if (Model.Value < 0)
+    {
+        <span class="badge">Отрицательное значение</span>
+    }
+
+    <div class="card__desc">@Model.Description</div>
+</div>
+
+<style>
+    .value-class {
+        font-size: 0.9rem;
+        font-weight: normal;
+        color: #6b7280; /* Серый цвет, чтобы не перебивать основное значение */
+        margin-left: 4px;
+    }
+</style>

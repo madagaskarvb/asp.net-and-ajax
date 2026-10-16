@@ -1,0 +1,101 @@
+﻿@page
+@model WebApplication2.Pages.Catalog.IndexModel
+@{
+    ViewData["Title"] = "Каталог";
+}
+
+<div class="container my-4">
+
+    <!-- Заголовок -->
+    <div class="mb-4">
+        <h1 class="h3 page-title">Каталог товаров</h1>
+        <div class="text-center">
+            <span id="product-count-badge" class="badge bg-primary rounded-pill">
+                @Model.Products.Count товаров
+            </span>
+        </div>
+    </div>
+
+    <!-- ===== ПОЛЕ ПОИСКА (id="searchInput") ===== -->
+    <div class="row justify-content-center mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">🔍</span>
+                <input type="text"
+                       id="searchInput"
+                       class="form-control"
+                       placeholder="Поиск товаров..."
+                       autocomplete="off" />
+                <button type="button" id="searchClear" class="btn btn-outline-secondary">
+                    Очистить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ФИЛЬТРЫ-ТЕГИ ===== -->
+    <div class="d-flex flex-wrap gap-2 justify-content-center mb-4 tag-filter-panel">
+        <a asp-page="/Catalog/Index"
+           class="btn btn-sm btn-outline-secondary rounded-pill tag-filter @(Model.SelectedTag == null ? "active" : "")"
+           data-tag="">Все</a>
+
+        @foreach (var tag in Model.Tags)
+        {
+            <a asp-page="/Catalog/Index"
+               asp-route-tag="@tag"
+               class="btn btn-sm btn-outline-secondary rounded-pill tag-filter @(Model.SelectedTag == tag ? "active" : "")"
+               data-tag="@tag">@tag</a>
+        }
+    </div>
+
+    <!-- ===== КОНТЕЙНЕР ДЛЯ ТОВАРОВ (id="catalogGrid") ===== -->
+    <!-- ===== КОНТЕЙНЕР ДЛЯ ТОВАРОВ ===== -->
+    <div id="catalogGrid">
+        <partial name="_ProductList" model="Model.Products" />
+    </div>
+
+    <!-- ===== СЕНТИНЕЛЬ для infinite scroll ===== -->
+    <div id="sentinel" class="text-center py-3" style="height: 40px;">
+        <div id="loadMoreSpinner" class="spinner-border text-primary d-none" role="status">
+            <span class="visually-hidden">Загрузка...</span>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== МОДАЛКА ТОВАРА (содержимое подгружается через AJAX) ===== -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel">Товар</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+
+            <div class="modal-body" id="modalBody">
+                <!-- Сюда JS вставит спиннер, потом — контент -->
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <environment include="Development">
+        <script src="~/js/search.js" asp-append-version="true"></script>
+        <script src="~/js/cart.js" asp-append-version="true"></script>
+        <script src="~/js/infinite.js" asp-append-version="true"></script>
+        <script src="~/js/product-modal.js" asp-append-version="true"></script>
+    </environment>
+    <environment exclude="Development">
+        <script src="~/js/search.min.js" asp-append-version="true"></script>
+        <script src="~/js/cart.min.js" asp-append-version="true"></script>
+        <script src="~/js/infinite.min.js" asp-append-version="true"></script>
+        <script src="~/js/product-modal.min.js" asp-append-version="true"></script>
+    </environment>
+}

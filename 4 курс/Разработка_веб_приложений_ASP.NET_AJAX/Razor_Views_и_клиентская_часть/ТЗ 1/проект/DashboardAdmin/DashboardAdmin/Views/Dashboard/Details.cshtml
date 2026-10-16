@@ -1,0 +1,11 @@
+﻿@model DashboardCard
+@{
+    ViewData["Title"] = "Детали";
+}
+
+<h2>@Model.Title</h2>
+<p><strong>Значение:</strong> @Model.Value @Model.Unit</p>
+<p><strong>Описание:</strong> @Model.Description</p>
+<p><strong>Тренд:</strong> @Model.Trend</p>
+
+<a href="/Dashboard">← Назад к дашборду</a>

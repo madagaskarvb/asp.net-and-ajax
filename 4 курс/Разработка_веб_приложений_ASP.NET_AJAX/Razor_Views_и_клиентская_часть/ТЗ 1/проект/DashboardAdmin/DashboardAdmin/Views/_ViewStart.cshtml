@@ -1,0 +1,11 @@
+﻿@{
+    // Проверяем, передан ли режим "Print" из контроллера
+    if (ViewData["Mode"] as string == "Print")
+    {
+        Layout = "_PrintLayout";   // Упрощенный layout для печати
+    }
+    else
+    {
+        Layout = "_AppLayout";     // Обычный layout с сайдбаром
+    }
+}

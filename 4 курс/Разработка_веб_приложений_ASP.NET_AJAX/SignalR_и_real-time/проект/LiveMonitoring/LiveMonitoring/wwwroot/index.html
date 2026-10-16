@@ -1,0 +1,816 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Live-центр мониторинга</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f4f6f8;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        h2 {
+            color: #555;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        #feed {
+            border: 1px solid #ccc;
+            background: #fff;
+            height: 320px;
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .entry {
+            padding: 4px 6px;
+            border-bottom: 1px dashed #eee;
+            font-size: 14px;
+        }
+
+        .connect {
+            color: #2e7d32;
+        }
+
+        .disconnect {
+            color: #c62828;
+        }
+
+        .message {
+            color: #1565c0;
+        }
+
+        .room-message {
+            color: #6a1b9a;
+            font-weight: bold;
+            background: #f3e5f5;
+            border-radius: 4px;
+        }
+
+        .external-room {
+            color: #4a148c;
+            font-weight: bold;
+            background: #ede7f6;
+            border-radius: 4px;
+        }
+
+        .room-info {
+            color: #ef6c00;
+        }
+
+        .system {
+            color: #00695c;
+            font-style: italic;
+            background: #e0f2f1;
+            border-radius: 4px;
+        }
+
+        .private {
+            color: #b71c1c;
+            font-weight: bold;
+            background: #ffebee;
+            border-radius: 4px;
+        }
+
+        .private-sent {
+            color: #795548;
+            background: #efebe9;
+            border-radius: 4px;
+        }
+
+        .time {
+            color: #888;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        input[type=text] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-width: 120px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            background: #1565c0;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            button:hover {
+                background: #0d47a1;
+            }
+
+            button.green {
+                background: #2e7d32;
+            }
+
+                button.green:hover {
+                    background: #1b5e20;
+                }
+
+            button.red {
+                background: #c62828;
+            }
+
+                button.red:hover {
+                    background: #8e0000;
+                }
+
+            button.teal {
+                background: #00897b;
+            }
+
+                button.teal:hover {
+                    background: #00695c;
+                }
+
+            button.purple {
+                background: #6a1b9a;
+            }
+
+                button.purple:hover {
+                    background: #4a148c;
+                }
+
+        .room-panel, .private-panel, .users-panel, .stream-panel {
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .online-badge {
+            display: inline-block;
+            background: #1b5e20;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+            .online-badge span {
+                font-weight: bold;
+            }
+
+        .conn-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #fff;
+            background: #9e9e9e;
+            transition: background 0.3s;
+        }
+
+            .conn-badge.connected {
+                background: #2e7d32;
+            }
+
+            .conn-badge.reconnecting {
+                background: #ef6c00;
+            }
+
+            .conn-badge.disconnected {
+                background: #c62828;
+            }
+
+        .my-id {
+            display: inline-block;
+            background: #263238;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+            .my-id span {
+                color: #ffd54f;
+            }
+
+        .copy-btn {
+            padding: 6px 10px;
+            font-size: 13px;
+            background: #546e7a;
+        }
+
+            .copy-btn:hover {
+                background: #37474f;
+            }
+
+        /* Индикатор «Печатает…» */
+        .typing-indicator {
+            min-height: 18px;
+            font-size: 13px;
+            color: #00897b;
+            font-style: italic;
+            padding: 2px 4px;
+        }
+
+        /* Таблица пользователей */
+        .users-panel table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-panel th, .users-panel td {
+            text-align: left;
+            padding: 6px 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .users-panel th {
+            background: #eceff1;
+            font-weight: bold;
+            color: #37474f;
+        }
+
+        .user-id-cell {
+            font-family: monospace;
+            font-size: 13px;
+            color: #1565c0;
+            cursor: pointer;
+            user-select: all;
+        }
+
+            .user-id-cell:hover {
+                background: #e3f2fd;
+                text-decoration: underline;
+            }
+
+            .user-id-cell.me {
+                color: #ef6c00;
+                font-weight: bold;
+            }
+
+        .room-cell {
+            color: #6a1b9a;
+            font-weight: bold;
+        }
+
+            .room-cell.empty {
+                color: #9e9e9e;
+                font-weight: normal;
+                font-style: italic;
+            }
+
+        .me-badge {
+            display: inline-block;
+            background: #ef6c00;
+            color: #fff;
+            font-size: 11px;
+            padding: 1px 6px;
+            border-radius: 10px;
+            margin-left: 6px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live-центр мониторинга</h1>
+
+    <div class="status-bar">
+        <div class="online-badge">Онлайн: <span id="onlineCount">0</span></div>
+        <div class="conn-badge" id="connStatus">Не подключено</div>
+        <div class="my-id">Мой ID: <span id="myId">—</span></div>
+        <button class="copy-btn" id="copyIdBtn">Копировать ID</button>
+    </div>
+
+    <!-- Список пользователей -->
+    <h2>Пользователи</h2>
+    <div class="users-panel">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID подключения</th>
+                    <th>Комната</th>
+                </tr>
+            </thead>
+            <tbody id="userListBody">
+                <tr><td colspan="2" style="color:#999;">Пока никого нет</td></tr>
+            </tbody>
+        </table>
+        <div style="font-size: 12px; color:#888; margin-top: 6px;">
+            Кликните по ID — он подставится в поле «Кому» для приватного сообщения.
+        </div>
+    </div>
+
+    <h2>Лента событий</h2>
+    <div id="feed"></div>
+
+    <h2>Широковещательное сообщение</h2>
+    <div class="controls">
+        <input type="text" id="messageInput" placeholder="Введите сообщение..." />
+        <button id="sendBtn">Отправить всем</button>
+    </div>
+
+    <h2>Комнаты</h2>
+    <div class="room-panel">
+        <div class="controls">
+            <input type="text" id="roomInput" placeholder="Название комнаты (например, alpha)" />
+            <button id="joinBtn" class="green">Войти</button>
+            <button id="leaveBtn" class="red">Выйти</button>
+        </div>
+        <div class="controls">
+            <input type="text" id="roomMessageInput" placeholder="Сообщение в комнату..." />
+            <button id="sendRoomBtn">Отправить в комнату</button>
+        </div>
+
+        <!-- Индикатор «Печатает…» -->
+        <div class="typing-indicator" id="typingIndicator"></div>
+
+        <div class="controls">
+            <button id="externalRoomBtn" class="purple">Внешнее уведомление в комнату (HTTP)</button>
+        </div>
+        <div style="font-size: 13px; color:#666;">Текущая комната: <span id="currentRoom">—</span></div>
+    </div>
+
+    <h2>Приватное сообщение</h2>
+    <div class="private-panel">
+        <div class="controls">
+            <input type="text" id="targetIdInput" placeholder="Кому (ID получателя)" />
+        </div>
+        <div class="controls">
+            <input type="text" id="privateMessageInput" placeholder="Текст приватного сообщения..." />
+            <button id="sendPrivateBtn">Отправить приватно</button>
+        </div>
+    </div>
+
+    <h2>Системные сообщения (HTTP → SignalR)</h2>
+    <div class="controls">
+        <button id="systemBtn" class="teal">Отправить системное сообщение</button>
+    </div>
+
+    <h2>Поток случайных чисел (Streaming)</h2>
+    <div class="stream-panel">
+        <div class="controls">
+            <label style="display:flex; align-items:center; gap:6px; font-size:14px;">
+                Макс. значение:
+                <input type="number" id="maxValueInput" value="100" min="1" max="1000"
+                       style="width:80px; padding:6px; border:1px solid #ccc; border-radius:4px;" />
+            </label>
+            <button id="startStreamBtn" class="green">▶ Старт</button>
+            <button id="stopStreamBtn" class="red">■ Стоп</button>
+            <span id="streamStatus" style="font-size:13px; color:#666; margin-left:8px;">Остановлен</span>
+        </div>
+        <canvas id="streamChart" width="800" height="200"
+                style="border:1px solid #ccc; background:#fff; border-radius:4px; width:100%; max-width:800px;"></canvas>
+        <div id="streamValues"
+             style="font-family:monospace; font-size:12px; color:#555; margin-top:6px; min-height:20px;"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+    <script>
+                // ===== Ссылки на DOM =====
+                const feed = document.getElementById('feed');
+                const input = document.getElementById('messageInput');
+                const sendBtn = document.getElementById('sendBtn');
+
+                const roomInput = document.getElementById('roomInput');
+                const joinBtn = document.getElementById('joinBtn');
+                const leaveBtn = document.getElementById('leaveBtn');
+
+                const roomMessageInput = document.getElementById('roomMessageInput');
+                const sendRoomBtn = document.getElementById('sendRoomBtn');
+                const externalRoomBtn = document.getElementById('externalRoomBtn');
+                const currentRoomLabel = document.getElementById('currentRoom');
+
+                const onlineCountEl = document.getElementById('onlineCount');
+                const systemBtn = document.getElementById('systemBtn');
+
+                const connStatusEl = document.getElementById('connStatus');
+                const myIdEl = document.getElementById('myId');
+                const copyIdBtn = document.getElementById('copyIdBtn');
+
+                const targetIdInput = document.getElementById('targetIdInput');
+                const privateMessageInput = document.getElementById('privateMessageInput');
+                const sendPrivateBtn = document.getElementById('sendPrivateBtn');
+
+                const typingIndicatorEl = document.getElementById('typingIndicator');
+
+                const userListBody = document.getElementById('userListBody');
+
+                const maxValueInput = document.getElementById('maxValueInput');
+                const startStreamBtn = document.getElementById('startStreamBtn');
+                const stopStreamBtn = document.getElementById('stopStreamBtn');
+                const streamStatus = document.getElementById('streamStatus');
+                const streamChart = document.getElementById('streamChart');
+                const streamValues = document.getElementById('streamValues');
+                const streamCtx = streamChart.getContext('2d');
+
+                // ===== Состояние =====
+                let currentRoom = null;
+                let myConnectionId = null;
+
+                // ===== Вспомогательные =====
+                function setStatus(text, cssClass) {
+                    connStatusEl.textContent = text;
+                    connStatusEl.className = 'conn-badge ' + (cssClass || '');
+                }
+
+                function log(text, cssClass) {
+                    const entry = document.createElement('div');
+                    entry.className = 'entry ' + (cssClass || '');
+                    const time = new Date().toLocaleTimeString();
+                    entry.innerHTML = `<span class="time">[${time}]</span>${text}`;
+                    feed.appendChild(entry);
+                    feed.scrollTop = feed.scrollHeight;
+                }
+
+                // ===== Задание 4: автоматическое переподключение =====
+                const connection = new signalR.HubConnectionBuilder()
+                    .withUrl('/monitoringHub')
+                    .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+                    .build();
+
+                // ===== Задание 1 =====
+                connection.on('UserConnected', (id) => log(`Пользователь подключился: ${id}`, 'connect'));
+                connection.on('UserDisconnected', (id) => log(`Пользователь отключился: ${id}`, 'disconnect'));
+                connection.on('ReceiveMessage', (senderId, message) => log(`Сообщение от ${senderId}: ${message}`, 'message'));
+
+                // ===== Задание 2 =====
+                connection.on('JoinedRoom', (roomName) => {
+                    currentRoom = roomName;
+                    currentRoomLabel.textContent = roomName;
+                    log(`Вы вошли в комнату «${roomName}»`, 'room-info');
+                });
+
+                connection.on('LeftRoom', (roomName) => {
+                    if (currentRoom === roomName) {
+                        currentRoom = null;
+                        currentRoomLabel.textContent = '—';
+                    }
+                    log(`Вы вышли из комнаты «${roomName}»`, 'room-info');
+                });
+
+                connection.on('ReceiveRoomMessage', (roomName, senderId, message) => {
+                    log(`[комната «${roomName}»] ${senderId}: ${message}`, 'room-message');
+                });
+
+                // ===== Задание 3 =====
+                connection.on('OnlineCount', (count) => {
+                    onlineCountEl.textContent = count;
+                });
+
+                connection.on('SystemMessage', (text) => {
+                    log(`СИСТЕМА: ${text}`, 'system');
+                });
+
+                // ===== Задание 5 =====
+                connection.on('ExternalRoomMessage', (roomName, text) => {
+                    log(`[внешнее → комната «${roomName}»]: ${text}`, 'external-room');
+                });
+
+                connection.on('PrivateMessage', (senderId, text) => {
+                    log(`🔒 Приватное от ${senderId}: ${text}`, 'private');
+                });
+
+                connection.on('PrivateSent', (targetId, text) => {
+                    log(`🔒 Вы отправили приватное для ${targetId}: ${text}`, 'private-sent');
+                });
+
+                // ===== Доп. задание (лёгкий): «Печатает…» =====
+                let typingTimeout = null;
+                connection.on('UserTyping', (roomName, senderId) => {
+                    if (typingIndicatorEl) {
+                        typingIndicatorEl.textContent = `Пользователь ${senderId.slice(0, 8)}… печатает…`;
+                    }
+                    log(`✏️ Пользователь ${senderId.slice(0, 8)}… печатает в «${roomName}»`, 'room-info');
+
+                    if (typingTimeout) clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(() => {
+                        if (typingIndicatorEl) typingIndicatorEl.textContent = '';
+                        typingTimeout = null;
+                    }, 2000);
+                });
+
+                // ===== Доп. задание (средний): список пользователей =====
+                connection.on('UserList', (users) => {
+                    userListBody.innerHTML = '';
+
+                    if (!users || users.length === 0) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td colspan="2" style="color:#999;">Пока никого нет</td>';
+                        userListBody.appendChild(tr);
+                        return;
+                    }
+
+                    for (const u of users) {
+                        const tr = document.createElement('tr');
+
+                        const tdId = document.createElement('td');
+                        tdId.className = 'user-id-cell' + (u.connectionId === myConnectionId ? ' me' : '');
+                        tdId.textContent = u.connectionId;
+
+                        if (u.connectionId === myConnectionId) {
+                            const badge = document.createElement('span');
+                            badge.className = 'me-badge';
+                            badge.textContent = 'вы';
+                            tdId.appendChild(badge);
+                        }
+
+                        tdId.title = 'Кликните, чтобы подставить ID в поле получателя';
+                        tdId.addEventListener('click', () => {
+                            targetIdInput.value = u.connectionId;
+                            log(`ID ${u.connectionId.slice(0, 8)}… подставлен в поле «Кому»`, 'room-info');
+                            targetIdInput.focus();
+                            targetIdInput.style.outline = '2px solid #ef6c00';
+                            setTimeout(() => { targetIdInput.style.outline = ''; }, 800);
+                        });
+
+                        const tdRoom = document.createElement('td');
+                        const roomText = u.room || 'без комнаты';
+                        tdRoom.textContent = roomText;
+                        tdRoom.className = 'room-cell' + (roomText === 'без комнаты' ? ' empty' : '');
+
+                        tr.appendChild(tdId);
+                        tr.appendChild(tdRoom);
+                        userListBody.appendChild(tr);
+                    }
+                });
+
+                // ===== Задание 4: переподключение =====
+                connection.onreconnecting((error) => {
+                    setStatus('Переподключение…', 'reconnecting');
+                    log('Соединение потеряно. Переподключение…', 'disconnect');
+                });
+
+                connection.onreconnected(async (connectionId) => {
+                    setStatus('Подключено', 'connected');
+                    myConnectionId = connectionId;
+                    myIdEl.textContent = connectionId;
+                    log('Переподключено. Новый ID: ' + connectionId, 'connect');
+
+                    if (currentRoom) {
+                        try {
+                            await connection.invoke('JoinRoom', currentRoom);
+                            log(`Автоматически восстановлено участие в комнате «${currentRoom}»`, 'room-info');
+                        } catch (err) {
+                            log('Не удалось восстановить комнату: ' + err, 'disconnect');
+                        }
+                    }
+                });
+
+                connection.onclose((error) => {
+                    setStatus('Соединение потеряно', 'disconnected');
+                    log('Соединение закрыто окончательно.', 'disconnect');
+                });
+
+                async function start() {
+                    try {
+                        await connection.start();
+                        setStatus('Подключено', 'connected');
+                        myConnectionId = connection.connectionId;
+                        myIdEl.textContent = myConnectionId;
+                        log('Соединение установлено. Мой ID: ' + myConnectionId, 'connect');
+                    } catch (err) {
+                        setStatus('Не подключено', 'disconnected');
+                        log('Ошибка подключения: ' + err, 'disconnect');
+                        setTimeout(start, 3000);
+                    }
+                }
+
+                // ===== Копировать ID =====
+                copyIdBtn.addEventListener('click', async () => {
+                    const id = myIdEl.textContent;
+                    if (!id || id === '—') return;
+                    try {
+                        await navigator.clipboard.writeText(id);
+                        log('ID скопирован в буфер обмена: ' + id, 'room-info');
+                    } catch {
+                        log('Не удалось скопировать ID. Скопируйте вручную: ' + id, 'disconnect');
+                    }
+                });
+
+                // ===== Отправка всем =====
+                sendBtn.addEventListener('click', async () => {
+                    const text = input.value.trim();
+                    if (!text) return;
+                    try {
+                        await connection.invoke('SendMessage', text);
+                        input.value = '';
+                    } catch (err) { log('Ошибка отправки: ' + err, 'disconnect'); }
+                });
+                input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.click(); });
+
+                // ===== Комнаты =====
+                joinBtn.addEventListener('click', async () => {
+                    const roomName = roomInput.value.trim();
+                    if (!roomName) return;
+                    try { await connection.invoke('JoinRoom', roomName); }
+                    catch (err) { log('Ошибка входа в комнату: ' + err, 'disconnect'); }
+                });
+
+                leaveBtn.addEventListener('click', async () => {
+                    const roomName = roomInput.value.trim();
+                    if (!roomName) return;
+                    try { await connection.invoke('LeaveRoom', roomName); }
+                    catch (err) { log('Ошибка выхода из комнаты: ' + err, 'disconnect'); }
+                });
+
+                sendRoomBtn.addEventListener('click', async () => {
+                    const roomName = roomInput.value.trim();
+                    const text = roomMessageInput.value.trim();
+                    if (!roomName || !text) return;
+                    try {
+                        await connection.invoke('SendToRoom', roomName, text);
+                        roomMessageInput.value = '';
+                    } catch (err) { log('Ошибка отправки в комнату: ' + err, 'disconnect'); }
+                });
+                roomMessageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendRoomBtn.click(); });
+
+                // ===== Доп. задание (лёгкий): throttle 500 мс для «Печатает…» =====
+                let typingSendTimeout = null;
+                roomMessageInput.addEventListener('input', () => {
+                    if (!currentRoom) return;
+                    if (typingSendTimeout) return;
+                    typingSendTimeout = setTimeout(async () => {
+                        typingSendTimeout = null;
+                        try {
+                            await connection.invoke('NotifyTyping', currentRoom);
+                        } catch (err) {
+                            console.error('Ошибка вызова NotifyTyping:', err);
+                        }
+                    }, 500);
+                });
+
+                // ===== Задание 5: внешнее уведомление в комнату =====
+                externalRoomBtn.addEventListener('click', async () => {
+                    const roomName = roomInput.value.trim();
+                    if (!roomName) {
+                        log('Введите имя комнаты в поле выше', 'disconnect');
+                        return;
+                    }
+                    const text = roomMessageInput.value.trim() || 'Внешнее уведомление';
+                    try {
+                        const resp = await fetch('/api/room-message', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ room: roomName, text: text })
+                        });
+                        if (!resp.ok) log('Ошибка HTTP: ' + resp.status, 'disconnect');
+                    } catch (err) {
+                        log('Ошибка HTTP-запроса: ' + err, 'disconnect');
+                    }
+                });
+
+                // ===== Задание 5: приватное сообщение =====
+                sendPrivateBtn.addEventListener('click', async () => {
+                    const targetId = targetIdInput.value.trim();
+                    const text = privateMessageInput.value.trim();
+                    if (!targetId || !text) return;
+                    try {
+                        await connection.invoke('SendPrivate', targetId, text);
+                        privateMessageInput.value = '';
+                    } catch (err) { log('Ошибка отправки приватного: ' + err, 'disconnect'); }
+                });
+                privateMessageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendPrivateBtn.click(); });
+
+                // ===== Задание 3: HTTP → системное сообщение =====
+                systemBtn.addEventListener('click', async () => {
+                    try {
+                        const resp = await fetch('/api/system-message', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: 'Проверка связи из HTTP-запроса' })
+                        });
+                        if (!resp.ok) log('Ошибка HTTP: ' + resp.status, 'disconnect');
+                    } catch (err) {
+                        log('Ошибка HTTP-запроса: ' + err, 'disconnect');
+                    }
+                });
+
+                // ===== Доп. задание (сложный): потоковая передача =====
+                let streamSubscription = null;
+                let streamBuffer = [];
+                let streamReceivedCount = 0;
+                const MAX_POINTS = 100;
+
+                function drawStreamChart() {
+                    const w = streamChart.width;
+                    const h = streamChart.height;
+                    streamCtx.clearRect(0, 0, w, h);
+
+                    // Базовая линия
+                    streamCtx.strokeStyle = '#e0e0e0';
+                    streamCtx.lineWidth = 1;
+                    streamCtx.beginPath();
+                    streamCtx.moveTo(0, h - 1);
+                    streamCtx.lineTo(w, h - 1);
+                    streamCtx.stroke();
+
+                    if (streamBuffer.length === 0) return;
+
+                    const max = parseInt(maxValueInput.value) || 100;
+                    const step = w / Math.max(streamBuffer.length - 1, 1);
+
+                    // Линия графика
+                    streamCtx.strokeStyle = '#1565c0';
+                    streamCtx.lineWidth = 2;
+                    streamCtx.beginPath();
+                    streamBuffer.forEach((v, i) => {
+                        const x = i * step;
+                        const y = h - (v / max) * (h - 12) - 6;
+                        if (i === 0) streamCtx.moveTo(x, y);
+                        else streamCtx.lineTo(x, y);
+                    });
+                    streamCtx.stroke();
+
+                    // Точки
+                    streamCtx.fillStyle = '#0d47a1';
+                    streamBuffer.forEach((v, i) => {
+                        const x = i * step;
+                        const y = h - (v / max) * (h - 12) - 6;
+                        streamCtx.beginPath();
+                        streamCtx.arc(x, y, 2, 0, Math.PI * 2);
+                        streamCtx.fill();
+                    });
+                }
+
+                startStreamBtn.addEventListener('click', () => {
+                    if (streamSubscription) return;
+
+                    const maxValue = parseInt(maxValueInput.value) || 100;
+
+                    streamBuffer = [];
+                    streamReceivedCount = 0;
+                    streamValues.textContent = '';
+                    drawStreamChart();
+                    streamStatus.textContent = 'Открываю поток…';
+                    log(`▶ Запуск потока (макс. ${maxValue})`, 'room-info');
+
+                    streamSubscription = connection.stream('StreamNumbers', maxValue).subscribe({
+                        next: (value) => {
+                            streamReceivedCount++;
+                            streamBuffer.push(value);
+                            if (streamBuffer.length > MAX_POINTS) streamBuffer.shift();
+
+                            drawStreamChart();
+                            streamValues.textContent =
+                                `Последние: ${streamBuffer.slice(-15).join(', ')}  |  Всего: ${streamReceivedCount}`;
+                            streamStatus.textContent = `Активен (${streamReceivedCount})`;
+                        },
+                        complete: () => {
+                            streamStatus.textContent = 'Поток завершён';
+                            streamSubscription = null;
+                            log('✔ Поток завершён сервером', 'connect');
+                        },
+                        error: (err) => {
+                            streamStatus.textContent = 'Ошибка потока';
+                            streamSubscription = null;
+                            log('Ошибка потока: ' + err, 'disconnect');
+                        }
+                    });
+                });
+
+                stopStreamBtn.addEventListener('click', () => {
+                    if (!streamSubscription) return;
+                    streamSubscription.dispose();
+                    streamSubscription = null;
+                    streamStatus.textContent = 'Остановлен';
+                    log('■ Поток остановлен клиентом', 'room-info');
+                });
+
+                // Подстраховка при закрытии вкладки
+                window.addEventListener('beforeunload', () => {
+                    if (streamSubscription) {
+                        streamSubscription.dispose();
+                        streamSubscription = null;
+                    }
+                });
+
+                // ===== Запуск =====
+                start();
+    </script>
+</body>
+</html>

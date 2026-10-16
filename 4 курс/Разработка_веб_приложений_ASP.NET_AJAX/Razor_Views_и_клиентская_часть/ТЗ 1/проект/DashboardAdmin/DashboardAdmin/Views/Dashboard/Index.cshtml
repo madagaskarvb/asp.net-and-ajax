@@ -1,0 +1,214 @@
+﻿<!-- Админ-дашборд v1.0 -->
+@using Microsoft.AspNetCore.Html
+@model IEnumerable<DashboardCard>
+@{
+    ViewData["Title"] = "Дашборд";
+
+    // Считаем сумму и количество для PageHeader
+    decimal totalValue = 0;
+    int cardCount = 0;
+    foreach (var c in Model)
+    {
+        totalValue += c.Value;
+        cardCount++;
+    }
+
+    // 🔹 Объявление шаблонного делегата для карточки
+    Func<DashboardCard, IHtmlContent> renderCard = @<div class="card @(item.Value < 0 ? "card--negative" : "")">
+        <div class="card__title">@item.Title</div>
+        <div class="card__value">
+            @item.Value.ToString("N2") @item.Unit
+            <span class="value-class">(@GetValueClass(item.Value))</span>
+        </div>
+        <div class="card__trend">
+            @if (item.Trend == Trend.Up)
+            {
+                <span class="arrow up">↑</span>
+            }
+            else if (item.Trend == Trend.Down)
+            {
+
+                <span class="arrow down">↓</span>
+            }
+            else
+            {
+
+                <span class="arrow stable">→</span>
+            }
+            @GetTrendLabel(item.Trend)
+        </div>
+        @if (item.Value < 0)
+        {
+            <span class="badge">Отрицательное значение</span>
+        }
+        <div class="card__desc">@item.Description</div>
+    </div>;
+
+    // 🔹 Второй шаблонный делегат для сводки
+    Func<IEnumerable<DashboardCard>, IHtmlContent> renderSummary = @<div class="summary">
+        <strong>Всего карточек:</strong> @item.Count() <br />
+        <strong>Сумма:</strong> @item.Sum(c => c.Value).ToString("N2") @ViewBag.Currency <br />
+        <strong>Среднее значение:</strong> @GetAverage(item).ToString("N2") @ViewBag.Currency
+    </div>;
+}
+
+@functions {
+    string GetTrendLabel(Trend t) => t switch
+    {
+        Trend.Up => "Рост",
+        Trend.Down => "Снижение",
+        Trend.Stable => "Стабильно",
+        _ => "—"
+    };
+
+    string GetValueClass(decimal value)
+    {
+        if (value < 0) return "Отрицательное";
+        if (value < 1000) return "Низкое";
+        if (value <= 10000) return "Среднее";
+        return "Высокое";
+    }
+
+    // 🔹 Новый метод: среднее значение
+    decimal GetAverage(IEnumerable<DashboardCard> cards)
+    {
+        if (cards == null || !cards.Any()) return 0;
+        return cards.Average(c => c.Value);
+    }
+}
+
+@section PageHeader {
+    <h1>Дашборд</h1>
+    @* Данные за период из контроллера *@
+    <p class="subtitle">
+        Период: @ViewData["ReportPeriod"] |
+        @cardCount показателей, сумма: @totalValue.ToString("N2") @ViewBag.Currency
+    </p>
+}
+
+@* 
+    💡 Чем шаблонный делегат отличается от partial и когда что использовать:
+
+    Partial (@await Html.PartialAsync("_DashboardCard", card)):
+    - Это отдельный файл .cshtml, который компилируется один раз.
+    - Может переиспользоваться на разных страницах (Dashboard, Details, Reports и т.д.).
+    - Не видит контекст текущей страницы (например, методы из @functions этой страницы, если они не переданы).
+    - Лучше использовать для больших, часто используемых кусков разметки.
+
+    Шаблонный делегат (Func<DashboardCard, IHtmlContent> renderCard = @<div>...):
+    - Это локальная функция, определённая прямо в текущем файле.
+    - Не требует создания отдельного файла.
+    - Видит контекст текущей страницы (методы @functions, ViewBag, ViewData).
+    - Лучше использовать для небольших, однократных или специфичных для одной страницы участков разметки.
+*@
+
+<div class="cards-grid">
+    @foreach (var card in Model)
+    {
+        @renderCard(card)
+    }
+</div>
+
+@* Вызов второго делегата для сводки *@
+@renderSummary(Model)
+
+@section Actions {
+    <a href="/Dashboard/Print" class="btn-print" target="_blank">🖨 Печать</a>
+}
+
+<style>
+    .subtitle {
+        margin: 4px 0 0 0;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .cards-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .card {
+        flex: 1 1 30%;
+        min-width: 260px;
+        background: #fff;
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        border-left: 4px solid #3b82f6;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .card--negative {
+        border-left-color: #ef4444;
+    }
+
+    .card__title {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .card__value {
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: #111827;
+    }
+
+    .card__trend {
+        font-size: 0.9rem;
+        color: #4b5563;
+    }
+
+    .arrow {
+        font-weight: bold;
+        margin-right: 4px;
+    }
+
+        .arrow.up {
+            color: #16a34a;
+        }
+
+        .arrow.down {
+            color: #dc2626;
+        }
+
+        .arrow.stable {
+            color: #6b7280;
+        }
+
+    .badge {
+        display: inline-block;
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        width: fit-content;
+    }
+
+    .value-class {
+        font-size: 0.9rem;
+        font-weight: normal;
+        color: #6b7280;
+        margin-left: 4px;
+    }
+
+    .card__desc {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: auto;
+    }
+
+    .summary {
+        margin-top: 20px;
+        padding: 12px 16px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+</style>

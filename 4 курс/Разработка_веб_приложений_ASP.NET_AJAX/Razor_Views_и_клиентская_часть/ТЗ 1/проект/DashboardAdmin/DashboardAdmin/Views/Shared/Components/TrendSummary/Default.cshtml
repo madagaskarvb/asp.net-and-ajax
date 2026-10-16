@@ -1,0 +1,78 @@
+﻿@model IEnumerable<DashboardAdmin.ViewComponents.TrendSummaryModel>
+
+@if (Model == null || !Model.Any())
+{
+    <p class="no-data">Нет данных</p>
+}
+else
+{
+    <ul class="trend-list">
+        @foreach (var item in Model)
+        {
+            <li class="trend-item trend-item--@item.CssClass">
+                <div class="trend-item__head">
+                    <span class="trend-item__label">@item.Label</span>
+                    <span class="trend-item__count">@item.Count шт.</span>
+                </div>
+                <div class="trend-item__sum">
+                    Сумма: @item.Total.ToString("N2") RUB
+                </div>
+            </li>
+        }
+    </ul>
+}
+
+<style>
+    .no-data {
+        color: #6b7280;
+        font-style: italic;
+        margin: 8px 0 0 0;
+    }
+
+    .trend-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .trend-item {
+        padding: 10px 12px;
+        border-radius: 6px;
+        background: #f9fafb;
+        border-left: 4px solid #9ca3af;
+    }
+
+    .trend-item--up {
+        border-left-color: #16a34a;
+    }
+
+    .trend-item--down {
+        border-left-color: #dc2626;
+    }
+
+    .trend-item--stable {
+        border-left-color: #6b7280;
+    }
+
+    .trend-item__head {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #374151;
+    }
+
+    .trend-item__count {
+        color: #6b7280;
+        font-weight: normal;
+    }
+
+    .trend-item__sum {
+        font-size: 0.85rem;
+        color: #4b5563;
+        margin-top: 4px;
+    }
+</style>

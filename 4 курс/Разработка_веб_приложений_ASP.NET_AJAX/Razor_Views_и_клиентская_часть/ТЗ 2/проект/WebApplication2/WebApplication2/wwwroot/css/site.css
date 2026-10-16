@@ -1,0 +1,153 @@
+/* =========================================================
+   site.css — кастомные стили поверх Bootstrap
+   Правило: используем CSS-переменные Bootstrap, не ломаем его.
+   ========================================================= */
+
+/* 1. Центрированный заголовок страницы */
+.page-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+    /* Тонкая линия под заголовком */
+    .page-title::after {
+        content: "";
+        display: block;
+        width: 60px;
+        height: 3px;
+        background: var(--bs-primary, #0d6efd);
+        border-radius: 2px;
+        margin: 0.75rem auto 0;
+    }
+
+/* 2. Усиление отступа у карточек на мобильных */
+@media (max-width: 767.98px) {
+    .product-card {
+        margin-bottom: 1.25rem;
+    }
+
+    /* На мобильных карточки идут в 1 колонку — даём им «воздух» */
+    .row.g-4 > [class*="col-"] {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* 3. Свой цвет для кнопки «Оформить заказ» */
+.btn-order {
+    --bs-btn-bg: #6f42c1;
+    --bs-btn-border-color: #6f42c1;
+    --bs-btn-hover-bg: #5a32a3;
+    --bs-btn-hover-border-color: #5a32a3;
+    --bs-btn-active-bg: #4e2a8e;
+    --bs-btn-active-border-color: #4e2a8e;
+    --bs-btn-color: #fff;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-color: #fff;
+    --bs-btn-focus-shadow-rgb: 111, 66, 193;
+}
+
+/* 4. Плавный ховер карточек (был раньше — оставим) */
+.product-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12) !important;
+    }
+
+
+/* Активный тег-фильтр — делаем его синим, а не серым */
+.tag-filter.active {
+    background-color: var(--bs-primary, #0d6efd);
+    border-color: var(--bs-primary, #0d6efd);
+    color: #fff;
+}
+
+    .tag-filter.active:hover {
+        background-color: var(--bs-primary, #0d6efd);
+        color: #fff;
+    }
+
+/* =========================================================
+   Динамические состояния карточек товаров
+   ========================================================= */
+
+/* Нет в наличии: карточка «приглушена», рамка — красная */
+.card-out-of-stock {
+    background-color: #f8f9fa;
+    filter: grayscale(20%);
+}
+
+    .card-out-of-stock .card-title {
+        color: var(--bs-secondary);
+    }
+
+/* Все карточки — плавная анимация рамки/тени при смене состояний */
+.product-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+    /* Хит продаж — усиленная тень (в дополнение к .shadow-sm) */
+    .product-card.shadow-sm:hover {
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+    }
+
+    /* Большая скидка — зелёная подсветка заголовка цены */
+    .product-card.border-success .card-title {
+        color: #0f5132;
+    }
+
+/* Нет в наличии — зачёркиваем заголовок? Нет. Просто приглушаем.
+   Отдельный акцент для бейджа «Нет в наличии» */
+.badge.bg-danger {
+    letter-spacing: .3px;
+}
+
+/* Мобильная адаптация: чуть увеличим отступы карточек */
+@media (max-width: 767.98px) {
+    .product-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* =========================================================
+   AJAX-интерфейс: бейдж корзины и всплывающие уведомления
+   ========================================================= */
+
+/* Пульс бейджа при добавлении товара */
+#cartBadge {
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+    #cartBadge.badge-pulse {
+        animation: badgePulse 0.6s ease;
+    }
+
+@keyframes badgePulse {
+    0% {
+        transform: scale(1);
+    }
+
+    30% {
+        transform: scale(1.5);
+        background-color: #ffca2c;
+    }
+
+    60% {
+        transform: scale(1.1);
+        background-color: #dc3545;
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Кнопка «В корзину» в состоянии "Добавлено" */
+.add-to-cart.btn-success {
+    pointer-events: none;
+}

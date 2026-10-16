@@ -1,0 +1,9 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+@* Передаем секции наверх *@
+@await RenderSectionAsync("PageHeader", required: false)
+@await RenderSectionAsync("Actions", required: false)
+
+@RenderBody()

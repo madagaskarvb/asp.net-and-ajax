@@ -1,0 +1,47 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+<div class="app-layout">
+    <section class="main-area">
+        @* Передаем секции наверх в _Layout.cshtml *@
+        @await RenderSectionAsync("PageHeader", required: false)
+        @await RenderSectionAsync("Actions", required: false)
+
+        @RenderBody()
+    </section>
+
+    <aside class="sidebar">
+        <h3>Сводка по трендам</h3>
+        @await Component.InvokeAsync("TrendSummary")
+    </aside>
+</div>
+
+<style>
+    .app-layout {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .main-area {
+        min-width: 0;
+    }
+
+    .sidebar {
+        background: #fff;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        height: fit-content;
+    }
+
+        .sidebar h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 8px;
+        }
+</style>
