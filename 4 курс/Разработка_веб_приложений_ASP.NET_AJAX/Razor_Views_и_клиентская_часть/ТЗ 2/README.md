@@ -1,0 +1,5 @@
+# Веб-каталог с использованием Bootstrap и статических файлов
+
+**Цель проекта** — Научиться грамотно подключать Bootstrap и собственные CSS через static files middleware и встроенный бандлинг/минификацию, использовать сетку и компоненты Bootstrap (navbar, card, modal, alert) для построения типового интернет-каталога. Освоить правильное размещение файлов в wwwroot и ссылки на них в Razor, а также понять, как middleware обслуживает статику и как бандлер собирает и минифицирует файлы. В результате должно получиться приложение с адаптивной шапкой-навбаром, сеткой карточек товаров, алертами, модальным окном подтверждения заказа и кастомными стилями, не ломающими Bootstrap.
+
+**Стек**: ASP.NET Core MVC, Razor Views (.cshtml), Bootstrap 5 (grid, navbar, cards, modals, alerts), Bundling & Minification (BuildBundlerMinifier, bundleconfig.json), HTML, CSS, JavaScript (Bootstrap JS + собственный site.js).
